@@ -415,7 +415,7 @@ def greedy_search(problem, h=None):
     h = memoize(h or problem.h, 'h')
     return best_first_graph_search(problem, h)
 
-def astar_search(problem, h=None, display=True):
+def astar_search(problem, h=None, display=False):
     """A* search is best-first graph search with f(n) = g(n)+h(n).
     You need to specify the h function when you call astar_search, or
     else in your Problem subclass."""

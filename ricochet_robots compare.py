@@ -58,8 +58,8 @@ class RRState:
     def __lt__(self, other):
         """ Este método é utilizado em caso de empate na gestão da lista
         de abertos nas procuras informadas."""
+        
         return (self.id < other.id)
-        pass
 
 
 class Board:
@@ -260,25 +260,42 @@ class RicochetRobots(Problem):
 
 if __name__ == "__main__":
 
-    board = parse_instance(sys.argv[1])
+    board1 = parse_instance(sys.argv[1] + "i1.txt")
+    board2 = parse_instance(sys.argv[1] + "i2.txt")
+    board3 = parse_instance(sys.argv[1] + "i3.txt")
+    board4 = parse_instance(sys.argv[1] + "i4.txt")
+    board5 = parse_instance(sys.argv[1] + "i5.txt")
+    board6 = parse_instance(sys.argv[1] + "i6.txt")
+    board7 = parse_instance(sys.argv[1] + "i7.txt")
+    board8 = parse_instance(sys.argv[1] + "i8.txt")
 
     start_time = time.time()
 
-    problem = RicochetRobots(board)
-
-    solution_node = astar_search(problem)
-
-    actions=[]
-
-    node = solution_node
-
-    while node.parent != None:
-        actions.insert(0, node.action)
-        node = node.parent
-    
-    print(len(actions))
-    for action in actions:
-        print(action[0], action[1])
+    print(board1.robot_position('Y'))
+    print(board1.robot_position('G'))
+    print(board1.robot_position('B'))
+    print(board1.robot_position('R'))
 
 
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    problems=[]
+    problems.append(RicochetRobots(board1))
+    problems.append(RicochetRobots(board2))
+    #problems.append(RicochetRobots(board3))
+    problems.append(RicochetRobots(board4))
+    problems.append(RicochetRobots(board5))
+    problems.append(RicochetRobots(board6))
+    problems.append(RicochetRobots(board7))
+    problems.append(RicochetRobots(board8))
+
+    """
+    for i in [1,2,3]:
+        for j in [1,2,3]:
+            print(board.cells[i][j].minimumMoves, end=' ')
+        print("\n")
+    """
+
+    """solution_node = greedy_search(problem)"""
+
+    compare_searchers(problems, "-1245678", [breadth_first_tree_search, greedy_search, astar_search])
+
+    print("--- %s seconds ---" % (time.time() - start_time))
