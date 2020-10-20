@@ -7,7 +7,7 @@
 # 92468 Goncalo Fernandes
 
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
-    depth_first_tree_search, greedy_search, compare_searchers
+    depth_first_tree_search, greedy_search
 import sys
 import copy
 
@@ -375,7 +375,7 @@ class RicochetRobots(Problem):
 
 if __name__ == "__main__":
     
-    board = parse_instance(sys.argv[1] + "i9.txt")
+    board = parse_instance(sys.argv[1])
 
     """
     start_time = time.time()
@@ -383,7 +383,7 @@ if __name__ == "__main__":
 
     problem = RicochetRobots(board)
 
-    solution_node = astar_search(problem, None, True)
+    solution_node = astar_search(problem)
 
     actions=[]
 
