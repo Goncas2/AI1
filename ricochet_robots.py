@@ -2,14 +2,13 @@
 # Devem alterar as classes e funções neste ficheiro de acordo com as instruções do enunciado.
 # Além das funções e classes já definidas, podem acrescentar outras que considerem pertinentes.
 
-# Grupo 00:
-# 00000 Nome1
-# 00000 Nome2
+# Grupo 42:
+# 92436 Catarina Alegria
+# 92468 Goncalo Fernandes
 
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
-    depth_first_tree_search, greedy_search, depth_limited_search, compare_searchers
+    depth_first_tree_search, greedy_search, compare_searchers
 import sys
-import time
 import copy
 
 
@@ -58,8 +57,45 @@ class RRState:
     def __lt__(self, other):
         """ Este método é utilizado em caso de empate na gestão da lista
         de abertos nas procuras informadas."""
-        return (self.id < other.id)
-        pass
+        
+        """
+        if self.board.recentlyMoved[0] == self.board.targetColor and other.board.recentlyMoved[0] != other.board.targetColor:
+            return True
+        elif self.board.recentlyMoved[0] != self.board.targetColor and other.board.recentlyMoved[0] == other.board.targetColor:
+            return False
+        else:
+            return (self.id < other.id)
+        """
+
+        """
+        if self.board.degree != other.board.degree:
+            return self.board.degree < other.board.degree
+        """
+        if self.board.degree != other.board.degree:
+            return self.board.degree < other.board.degree
+        elif self.board.distance != other.board.distance:
+            return self.board.distance < other.board.distance
+        elif self.board.sum != other.board.sum:
+            return self.board.sum < self.board.sum
+        else:
+            return (self.id < other.id)
+        
+        """
+        elif self.board.degree != other.board.degree:
+            return self.board.degree < other.board.degree
+        """
+       
+    def __eq__(self, other):
+        colorlist = ['Y', 'B', 'G', 'R']
+        colorlist.remove(self.board.targetColor)
+        board1 = {self.board.robot_position(colorlist[0]), self.board.robot_position(colorlist[1]), self.board.robot_position(colorlist[2])}
+        board2 = {other.board.robot_position(colorlist[0]), other.board.robot_position(colorlist[1]), other.board.robot_position(colorlist[2])}
+        
+        return board1 == board2 and self.board.robot_position(self.board.targetColor) == other.board.robot_position(self.board.targetColor)
+    
+    def __hash__(self):
+        return self.id
+        
 
 
 class Board:
@@ -69,7 +105,12 @@ class Board:
 
         f=open(filename,'r')
         Lines = f.readlines()
+        self.recentlyMoved = []
         self.robots = []
+        self.degree = 0
+        self.sum=0
+        self.distance = 0
+        self.oneMore = 0
 
         count = 0
         for line in Lines:
@@ -106,6 +147,12 @@ class Board:
         f.close()
 
         self.compute_minimum_moves(self.targetPosition[0], self.targetPosition[1], 0, None)
+
+    def hasRobot(self, row, column):
+        for r in self.robots:
+            if r.position[0] == row and r.position[1] == column:
+                return True
+        return False
 
     def compute_minimum_moves(self, row, column, moves, fromDirection):
         if(self.cells[row][column].minimumMoves <= moves and self.cells[row][column].minimumMoves != -1):
@@ -157,16 +204,16 @@ class Board:
     def can_go_direction(self, row, column, direction):
         if direction == 'u':
             return not (self.cells[row][column].hasBarrier('u') or (row > 0 and self.cells[row-1][column].hasBarrier('d'))
-                        or (row > 0 and self.cells[row-1][column].hasRobot()))
+                        or (self.hasRobot(row-1, column)))
         if direction == 'd':
             return not (self.cells[row][column].hasBarrier('d') or (row < self.dimension and self.cells[row+1][column].hasBarrier('u'))
-                        or (row < self.dimension and self.cells[row+1][column].hasRobot()))
+                        or (self.hasRobot(row+1, column)))
         if direction == 'l':
             return not (self.cells[row][column].hasBarrier('l') or (column > 0 and self.cells[row][column-1].hasBarrier('r'))
-                        or (column > 0 and self.cells[row][column-1].hasRobot()))
+                        or (self.hasRobot(row, column-1)))
         if direction == 'r':
             return not (self.cells[row][column].hasBarrier('r') or (column < self.dimension and self.cells[row][column+1].hasBarrier('l'))
-                        or (column < self.dimension and self.cells[row][column+1].hasRobot()))
+                        or (self.hasRobot(row, column+1)))
     
     def update_robot_pos(self, color, row, column):
         for r in self.robots:
@@ -174,6 +221,39 @@ class Board:
                 self.cells[r.position[0]][r.position[1]].removeRobot()
                 self.cells[row][column].addRobot()
                 r.position = [row, column]
+                self.degree = 4
+                for i in range(len(self.recentlyMoved)):
+                    if self.recentlyMoved[i] == color:
+                        self.recentlyMoved.remove(color)
+                        self.degree = i
+                        break
+
+        self.recentlyMoved.insert(0, color)
+        self.sum = self.cells[self.robot_position('Y')[0]][self.robot_position('Y')[1]].minimumMoves + self.cells[self.robot_position('R')[0]][self.robot_position('R')[1]].minimumMoves + self.cells[self.robot_position('B')[0]][self.robot_position('B')[1]].minimumMoves + self.cells[self.robot_position('G')[0]][self.robot_position('G')[1]].minimumMoves
+        self.distance = self.calculate_distance()
+        self.one_more()
+
+    def calculate_distance(self):
+        targetPos = self.targetPosition
+        robotPos = self.robot_position(self.targetColor)
+        return (abs(targetPos[0] - robotPos[0]) + abs(targetPos[1] - robotPos[1]))
+
+    def one_more(self):
+        
+        if(self.can_go_direction(self.targetPosition[0], self.targetPosition[1], 'u') and self.can_go_direction(self.targetPosition[0], self.targetPosition[1], 'd') and
+            self.can_go_direction(self.targetPosition[0], self.targetPosition[1], 'l') and self.can_go_direction(self.targetPosition[0], self.targetPosition[1], 'r')):
+            self.oneMore = 1
+        else:
+            self.oneMore = 0
+        
+        
+    
+    def copy(self):
+        newBoard = copy.copy(self)
+        newBoard.robots = copy.deepcopy(self.robots)
+        newBoard.recentlyMoved = copy.deepcopy(self.recentlyMoved)
+        newBoard.oneMore = copy.deepcopy(self.oneMore)
+        return newBoard
 
 
 
@@ -221,7 +301,7 @@ class RicochetRobots(Problem):
 
 
     def result(self, state: RRState, action):
-        resultState = copy.deepcopy(state)
+        resultState = RRState(state.board.copy())
         robot = next(filter(lambda x: x.color == action[0], resultState.board.robots))
 
         r = robot.position[0]
@@ -252,21 +332,58 @@ class RicochetRobots(Problem):
                 return state.board.targetPosition[0] == r.position[0] and state.board.targetPosition[1] == r.position[1]
 
     def h(self, node: Node):
+        """
         color = node.state.board.targetColor
         targetPos = node.state.board.targetPosition
         robotPos = node.state.board.robot_position(color)
-        return node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves
+
+        return node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves + node.state.board.sum*0.5
+        """
+        """
+        if(node.action != None):
+            color = node.action[0]
+            targetPos = node.state.board.targetPosition
+            robotPos = node.state.board.robot_position(color)
+            return (abs(targetPos[0] - robotPos[0]) + abs(targetPos[1] - robotPos[1]))
+        else:
+        """
+
+        color = node.state.board.targetColor
+        targetPos = node.state.board.targetPosition
+        robotPos = node.state.board.robot_position(color)
+        oneMoreMore = 0
+        
+        if(node.state.board.oneMore == 0):
+            if(node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves == 1):
+                if(robotPos[0] == targetPos[0]):
+                    if(robotPos[1] < targetPos[1]):
+                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'l')):
+                            oneMoreMore = 1
+                    if(robotPos[1] > targetPos[1]):
+                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'r')):
+                            oneMoreMore = 1
+                if(robotPos[1] == targetPos[1]):
+                    if(robotPos[0] < targetPos[0]):
+                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'u')):
+                            oneMoreMore = 1
+                    if(robotPos[0] > targetPos[0]):
+                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'd')):
+                            oneMoreMore = 1
+            
+        return node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves + node.state.board.oneMore + oneMoreMore
 
 
 if __name__ == "__main__":
+    
+    board = parse_instance(sys.argv[1] + "i9.txt")
 
-    board = parse_instance(sys.argv[1])
-
+    """
     start_time = time.time()
+    """
 
     problem = RicochetRobots(board)
 
-    solution_node = astar_search(problem)
+    solution_node = astar_search(problem, None, True)
 
     actions=[]
 
@@ -281,4 +398,3 @@ if __name__ == "__main__":
         print(action[0], action[1])
 
 
-    #print("--- %s seconds ---" % (time.time() - start_time))
