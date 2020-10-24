@@ -9,6 +9,7 @@
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
     depth_first_tree_search, greedy_search
 import sys
+import time
 import copy
 
 
@@ -65,26 +66,36 @@ class RRState:
             return False
         else:
             return (self.id < other.id)
+
+        if self.board.degree != other.board.degree:
+            return self.board.degree < other.board.degree
         """
 
-        """
         if self.board.degree != other.board.degree:
             return self.board.degree < other.board.degree
-        """
-        if self.board.degree != other.board.degree:
-            return self.board.degree < other.board.degree
+        elif self.board.recentlyMoved[0] == self.board.targetColor and other.board.recentlyMoved[0] != other.board.targetColor:
+            return True
+        elif self.board.recentlyMoved[0] != self.board.targetColor and other.board.recentlyMoved[0] == other.board.targetColor:
+            return False
         elif self.board.distance != other.board.distance:
             return self.board.distance < other.board.distance
-        elif self.board.sum != other.board.sum:
-            return self.board.sum < self.board.sum
         else:
             return (self.id < other.id)
-        
         """
+        elif self.board.sum != other.board.sum:
+            return self.board.sum < self.board.sum
+        elif self.board.sum != other.board.sum:
+            return self.board.sum < self.board.sum
+
+        """
+            
+        """
+        return (self.id < other.id)
+        
         elif self.board.degree != other.board.degree:
             return self.board.degree < other.board.degree
         """
-       
+      
     def __eq__(self, other):
         colorlist = ['Y', 'B', 'G', 'R']
         colorlist.remove(self.board.targetColor)
@@ -95,7 +106,7 @@ class RRState:
     
     def __hash__(self):
         return self.id
-        
+       
 
 
 class Board:
@@ -229,7 +240,7 @@ class Board:
                         break
 
         self.recentlyMoved.insert(0, color)
-        self.sum = self.cells[self.robot_position('Y')[0]][self.robot_position('Y')[1]].minimumMoves + self.cells[self.robot_position('R')[0]][self.robot_position('R')[1]].minimumMoves + self.cells[self.robot_position('B')[0]][self.robot_position('B')[1]].minimumMoves + self.cells[self.robot_position('G')[0]][self.robot_position('G')[1]].minimumMoves
+        #self.sum = self.cells[self.robot_position('Y')[0]][self.robot_position('Y')[1]].minimumMoves + self.cells[self.robot_position('R')[0]][self.robot_position('R')[1]].minimumMoves + self.cells[self.robot_position('B')[0]][self.robot_position('B')[1]].minimumMoves + self.cells[self.robot_position('G')[0]][self.robot_position('G')[1]].minimumMoves
         self.distance = self.calculate_distance()
         self.one_more()
 
@@ -353,21 +364,22 @@ class RicochetRobots(Problem):
         robotPos = node.state.board.robot_position(color)
         oneMoreMore = 0
         
+        
         if(node.state.board.oneMore == 0):
             if(node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves == 1):
                 if(robotPos[0] == targetPos[0]):
-                    if(robotPos[1] < targetPos[1]):
-                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'l')):
-                            oneMoreMore = 1
                     if(robotPos[1] > targetPos[1]):
-                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'r')):
+                        if (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'l')):
+                            oneMoreMore = 1
+                    if(robotPos[1] < targetPos[1]):
+                        if (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'r')):
                             oneMoreMore = 1
                 if(robotPos[1] == targetPos[1]):
-                    if(robotPos[0] < targetPos[0]):
-                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'u')):
-                            oneMoreMore = 1
                     if(robotPos[0] > targetPos[0]):
-                        if not (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'd')):
+                        if (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'u')):
+                            oneMoreMore = 1
+                    if(robotPos[0] < targetPos[0]):
+                        if (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'd')):
                             oneMoreMore = 1
             
         return node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves + node.state.board.oneMore + oneMoreMore
@@ -377,9 +389,9 @@ if __name__ == "__main__":
     
     board = parse_instance(sys.argv[1])
 
-    """
+    
     start_time = time.time()
-    """
+    
 
     problem = RicochetRobots(board)
 
@@ -396,5 +408,8 @@ if __name__ == "__main__":
     print(len(actions))
     for action in actions:
         print(action[0], action[1])
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+
 
 
