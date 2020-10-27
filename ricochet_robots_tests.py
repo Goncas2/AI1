@@ -7,7 +7,7 @@
 # 92468 Goncalo Fernandes
 
 from search import Problem, Node, astar_search, breadth_first_tree_search, \
-    depth_first_tree_search, greedy_search
+    depth_first_tree_search, greedy_search, compare_searchers, depth_first_graph_search
 import sys
 import time
 import copy
@@ -320,8 +320,11 @@ class RicochetRobots(Problem):
         color = node.state.board.targetColor
         targetPos = node.state.board.targetPosition
         robotPos = node.state.board.robot_position(color)
+
+
         oneMoreMore = 0  
         
+        """
         if(node.state.board.oneMore == 0):
             if(node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves == 1):
                 if(robotPos[0] == targetPos[0]):
@@ -338,18 +341,67 @@ class RicochetRobots(Problem):
                     if(robotPos[0] < targetPos[0]):
                         if (node.state.board.can_go_direction(targetPos[0], targetPos[1], 'd')):
                             oneMoreMore = 1
-            
-        return node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves + node.state.board.oneMore + oneMoreMore
+        
+        """
+
+        """
+        return abs(robotPos[0] - targetPos[0]) + abs(robotPos[1] - targetPos[1])
+        """    
+        return node.state.board.cells[robotPos[0]][robotPos[1]].minimumMoves 
+        """+ node.state.board.oneMore + oneMoreMore"""
+        
 
 
 if __name__ == "__main__":
+
+    start_time = time.time()
     
-    board = parse_instance(sys.argv[1])
+    """
+    board1 = parse_instance(sys.argv[1] + "i1.txt")
+    board2 = parse_instance(sys.argv[1] + "i2.txt")
+    board3 = parse_instance(sys.argv[1] + "i3.txt")
+    board4 = parse_instance(sys.argv[1] + "i4.txt")
+    board5 = parse_instance(sys.argv[1] + "i5.txt")
+    board6 = parse_instance(sys.argv[1] + "i6.txt")
+    board7 = parse_instance(sys.argv[1] + "i7.txt")
+    board8 = parse_instance(sys.argv[1] + "i8.txt")
+    """
+    board1 = parse_instance(sys.argv[1] + "01_5x5-05.txt")
+    board2 = parse_instance(sys.argv[1] + "02_6x6-06.txt")
+    board3 = parse_instance(sys.argv[1] + "03_6x6-10.txt")
+    board4 = parse_instance(sys.argv[1] + "04_7x7-04.txt")
+    board5 = parse_instance(sys.argv[1] + "05_7x7-06.txt")
+    board6 = parse_instance(sys.argv[1] + "06_8x8-07.txt")
+    board7 = parse_instance(sys.argv[1] + "07_9x9-07.txt")
+    board8 = parse_instance(sys.argv[1] + "08_9x9-08.txt")
+    board9 = parse_instance(sys.argv[1] + "09_10x10-06.txt")
+    
+    
+    problems=[]
+    problems.append(RicochetRobots(board1))
+    problems.append(RicochetRobots(board2))
+    problems.append(RicochetRobots(board3))
+    problems.append(RicochetRobots(board4))
+    problems.append(RicochetRobots(board5))
+    problems.append(RicochetRobots(board6))
+    problems.append(RicochetRobots(board7))
+    problems.append(RicochetRobots(board8))
+    problems.append(RicochetRobots(board9))
 
-    problem = RicochetRobots(board)
+    """
+    for i in range(1,9):
+        for j in range (1,9):
+            print(board.cells[i][j].minimumMoves, end=' ')
+        print(" ")
+    """
 
-    solution_node = astar_search(problem)
+    for i in range(0, len(problems)):
+        
+        start_time = time.time()
+        solution_node = astar_search(problems[i])
+        print("Teste ", i+1, ": ", (time.time() - start_time), " seconds")
 
+    """
     actions=[]
 
     node = solution_node
@@ -361,4 +413,12 @@ if __name__ == "__main__":
     print(len(actions))
     for action in actions:
         print(action[0], action[1])
+    """
+    
+    """
+    compare_searchers(problems, "-123456789", [astar_search, breadth_first_tree_search])
+    
 
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+    """
